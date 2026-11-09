@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Input Laporan Harian – D'one Fried Chicken</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sidebar-brand">
+    <div class="logo-icon">🍗</div>
+    <h1>D'one Fried Chicken</h1>
+    <p>Manajemen Usaha</p>
+  </div>
+  <div class="sidebar-nav">
+    <a href="index.html"><span class="nav-icon">🏠</span><span>Dashboard</span></a>
+    <div class="nav-section">Stok & Penjualan</div>
+    <a href="barang-masuk.html"><span class="nav-icon">📦</span><span>Barang Masuk</span></a>
+    <a href="barang-keluar.html"><span class="nav-icon">🛒</span><span>Barang Keluar</span></a>
+    <div class="nav-section">Laporan</div>
+    <a href="laporan-harian.html"><span class="nav-icon">📝</span><span>Input Laporan Harian</span></a>
+    <a href="arsip-laporan.html"><span class="nav-icon">🗂️</span><span>Arsip Laporan</span></a>
+    <a href="pengeluaran.html"><span class="nav-icon">💸</span><span>Pengeluaran</span></a>
+  </div>
+  <div class="sidebar-footer">v1.0 © 2025</div>
+</nav>
+
+<div class="main">
+  <div class="topbar">
+    <h2>📝 Input Laporan Harian</h2>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <span id="user-info" style="font-size:12px;color:var(--muted);"></span>
+      <span class="topbar-right" id="today-label"></span>
+    </div>
+  </div>
+
+  <div class="content">
+    <div id="alert-box"></div>
+
+    <div style="display:grid;grid-template-columns:1.6fr 1fr;gap:20px;align-items:start;">
+
+      <!-- Kolom Kiri: Form -->
+      <div>
+        <div class="card">
+          <div class="card-header"><h3>📅 Info Operasional</h3></div>
+          <div class="card-body">
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Tanggal Laporan *</label>
+                <input type="date" id="lp-tanggal" required />
+              </div>
+              <div class="form-group">
+                <label>Jam Buka</label>
+                <input type="time" id="lp-jam-buka" value="09:00" />
+              </div>
+              <div class="form-group">
+                <label>Jam Tutup</label>
+                <input type="time" id="lp-jam-tutup" value="21:00" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h3>🍗 Detail Penjualan Produk</h3>
+            <button type="button" class="btn btn-outline btn-sm" onclick="tambahBarisProduk()">➕ Tambah Produk</button>
+          </div>
+          <div class="card-body" style="padding:0;">
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th>Nama Produk</th><th>Qty</th><th>Harga Satuan</th><th>Subtotal</th><th></th></tr>
+                </thead>
+                <tbody id="tbl-produk-input"></tbody>
+                <tfoot>
+                  <tr style="background:#fff2e6;">
+                    <td colspan="3" class="fw-bold" style="padding:10px 14px;text-align:right;">Total Pendapatan Produk:</td>
+                    <td class="fw-bold" id="total-produk-display" style="padding:10px 14px;color:var(--primary);font-size:15px;">Rp 0</td>
+                    <td></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h3>💸 HPP & Pengeluaran</h3>
+            <span class="text-muted" style="font-size:12px;">Isi untuk menghitung laba</span>
+          </div>
+          <div class="card-body">
+            <div class="form-grid">
+              <div class="form-group">
+                <label>HPP / Modal Bahan Baku (Rp)</label>
+                <input type="number" id="lp-hpp" placeholder="cth: 700000" min="0" value="0" />
+              </div>
+              <div class="form-group">
+                <label>Pengeluaran Operasional (Rp)</label>
+                <input type="number" id="lp-ops" placeholder="cth: 100000" min="0" value="0" />
+              </div>
+              <div class="form-group">
+                <label>Pengeluaran Gaji (Rp)</label>
+                <input type="number" id="lp-gaji" placeholder="cth: 200000" min="0" value="0" />
+              </div>
+              <div class="form-group">
+                <label>Pengeluaran Lain-lain (Rp)</label>
+                <input type="number" id="lp-lain" placeholder="cth: 50000" min="0" value="0" />
+              </div>
+            </div>
+            <div class="form-group mt-2">
+              <label>Catatan Hari Ini</label>
+              <textarea id="lp-catatan" rows="3" placeholder="cth: Ramai saat sore hari, ada promo diskon 10%…"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Kolom Kanan: Preview Kalkulasi -->
+      <div style="position:sticky;top:80px;">
+        <div class="card" style="border:2px solid var(--secondary);">
+          <div class="card-header" style="background:linear-gradient(135deg,#fff3e0,#ffe0b2);">
+            <h3>🧮 Kalkulasi Otomatis</h3>
+            <span class="text-muted" style="font-size:11px;">Update real-time</span>
+          </div>
+          <div class="card-body">
+            <div class="summary-box" style="margin:0 0 16px;">
+              <div class="summary-title">📊 Ringkasan Laporan</div>
+              <div class="summary-row"><span>Total Pendapatan</span><span id="calc-pendapatan" class="fw-bold">Rp 0</span></div>
+              <div class="summary-row"><span>HPP Bahan Baku</span><span id="calc-hpp">Rp 0</span></div>
+              <div class="summary-row"><span>Laba Kotor</span><span id="calc-laba-kotor">Rp 0</span></div>
+              <hr style="border:none;border-top:1px dashed #ccc;margin:8px 0;" />
+              <div class="summary-row"><span>Pengeluaran Operasional</span><span id="calc-ops">Rp 0</span></div>
+              <div class="summary-row"><span>Pengeluaran Gaji</span><span id="calc-gaji">Rp 0</span></div>
+              <div class="summary-row"><span>Pengeluaran Lain-lain</span><span id="calc-lain">Rp 0</span></div>
+              <div class="summary-row"><span>Total Pengeluaran</span><span id="calc-total-pe">Rp 0</span></div>
+              <hr style="border:none;border-top:2px solid var(--secondary);margin:8px 0;" />
+              <div class="summary-row"><span>💰 LABA BERSIH</span><span id="calc-laba-bersih">Rp 0</span></div>
+            </div>
+
+            <div id="status-laba" style="text-align:center;padding:12px;border-radius:8px;margin-bottom:14px;font-weight:700;font-size:14px;background:#f5f5f5;color:#888;">
+              Isi data di kiri untuk melihat kalkulasi
+            </div>
+
+            <button type="button" class="btn btn-primary btn-block" id="btn-simpan-laporan" onclick="simpanLaporan()">
+              💾 Simpan Laporan Harian
+            </button>
+            <button type="button" class="btn btn-outline btn-block mt-1" onclick="resetForm()">
+              🔄 Reset Form
+            </button>
+            <div style="margin-top:12px;text-align:center;">
+              <a href="arsip-laporan.html" class="text-muted" style="font-size:12px;">📂 Lihat Arsip Laporan →</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+const PRODUK_LIST = [
+  { nama: 'FC Original 1 Pcs', harga: 12000 },
+  { nama: 'FC Spicy 1 Pcs',    harga: 13000 },
+  { nama: 'FC Krispy 1 Pcs',   harga: 13000 },
+  { nama: 'Paket Hemat 5 Pcs', harga: 55000 },
+  { nama: 'Paket Keluarga 10 Pcs', harga: 100000 },
+  { nama: 'Sayap FC',          harga: 10000 },
+  { nama: 'Paha FC',           harga: 12000 },
+  { nama: 'Dada FC',           harga: 14000 },
+];
+
+let barisProduk = [];
+let rowCounter  = 0;
+
+function tambahBarisProduk(defaultNama = '', defaultHarga = 0, defaultQty = 0) {
+  const id   = ++rowCounter;
+  barisProduk.push(id);
+  const opts = PRODUK_LIST.map(p =>
+    `<option value="${p.harga}" ${p.nama === defaultNama ? 'selected' : ''}>${p.nama}</option>`
+  ).join('');
+
+  const tr = document.createElement('tr');
+  tr.id = 'row-' + id;
+  tr.innerHTML = `
+    <td style="padding:8px 6px;min-width:170px;">
+      <select class="produk-select" data-id="${id}" style="width:100%;border:1px solid var(--border);border-radius:6px;padding:6px 8px;font-size:12px;" onchange="onProdukChange(${id})">
+        <option value="">-- Pilih --</option>${opts}
+        <option value="0" ${defaultNama && !PRODUK_LIST.find(p=>p.nama===defaultNama)?'selected':''}>Lainnya</option>
+      </select>
+      <input type="text" id="produk-nama-${id}" value="${defaultNama}" placeholder="Nama produk" style="display:none;margin-top:4px;width:100%;border:1px solid var(--border);border-radius:6px;padding:6px 8px;font-size:12px;" oninput="hitungBaris(${id})" />
+    </td>
+    <td style="padding:8px 6px;min-width:70px;">
+      <input type="number" id="produk-qty-${id}" value="${defaultQty||''}" min="0" placeholder="0"
+        style="width:100%;border:1px solid var(--border);border-radius:6px;padding:6px 8px;font-size:12px;"
+        oninput="hitungBaris(${id})" />
+    </td>
+    <td style="padding:8px 6px;min-width:110px;">
+      <input type="number" id="produk-harga-${id}" value="${defaultHarga||''}" min="0" placeholder="0"
+        style="width:100%;border:1px solid var(--border);border-radius:6px;padding:6px 8px;font-size:12px;"
+        oninput="hitungBaris(${id})" />
+    </td>
+    <td style="padding:8px 6px;" id="produk-sub-${id}" class="fw-bold">Rp 0</td>
+    <td style="padding:8px 6px;">
+      <button type="button" class="btn btn-danger btn-sm" onclick="hapusBaris(${id})">✖</button>
+    </td>`;
+  el('tbl-produk-input').appendChild(tr);
+
+  const found = PRODUK_LIST.find(p => p.nama === defaultNama);
+  if (found) {
+    document.querySelector(`#row-${id} .produk-select`).value = found.harga;
+    el('produk-harga-' + id).value = found.harga;
+  }
+  hitungBaris(id);
+}
+
+function onProdukChange(id) {
+  const sel        = document.querySelector(`#row-${id} .produk-select`);
+  const namaInput  = el('produk-nama-'  + id);
+  const hargaInput = el('produk-harga-' + id);
+  if (sel.value === '0') {
+    namaInput.style.display = 'block';
+    hargaInput.value = '';
+  } else if (sel.value === '') {
+    namaInput.style.display = 'none';
+    hargaInput.value = '';
+  } else {
+    namaInput.style.display = 'none';
+    namaInput.value = '';
+    hargaInput.value = sel.value;
+  }
+  hitungBaris(id);
+}
+
+function hitungBaris(id) {
+  const qty   = parseFloat(el('produk-qty-'   + id)?.value) || 0;
+  const harga = parseFloat(el('produk-harga-' + id)?.value) || 0;
+  if (el('produk-sub-' + id)) el('produk-sub-' + id).textContent = Fmt.currency(qty * harga);
+  hitungTotal();
+}
+
+function hapusBaris(id) {
+  el('row-' + id)?.remove();
+  barisProduk = barisProduk.filter(x => x !== id);
+  hitungTotal();
+}
+
+function hitungTotal() {
+  let totalPendapatan = 0;
+  barisProduk.forEach(id => {
+    if (!el('produk-qty-' + id)) return;
+    totalPendapatan += (parseFloat(el('produk-qty-'   + id).value) || 0)
+                     * (parseFloat(el('produk-harga-' + id).value) || 0);
+  });
+  const hpp  = parseFloat(el('lp-hpp').value)  || 0;
+  const ops  = parseFloat(el('lp-ops').value)  || 0;
+  const gaji = parseFloat(el('lp-gaji').value) || 0;
+  const lain = parseFloat(el('lp-lain').value) || 0;
+
+  const labaKotor  = totalPendapatan - hpp;
+  const totalPe    = hpp + ops + gaji + lain;
+  const labaBersih = totalPendapatan - totalPe;
+
+  el('total-produk-display').textContent = Fmt.currency(totalPendapatan);
+  el('calc-pendapatan').textContent      = Fmt.currency(totalPendapatan);
+  el('calc-hpp').textContent             = Fmt.currency(hpp);
+  el('calc-laba-kotor').textContent      = Fmt.currency(labaKotor);
+  el('calc-laba-kotor').style.color      = labaKotor >= 0 ? 'var(--success)' : 'var(--danger)';
+  el('calc-ops').textContent             = Fmt.currency(ops);
+  el('calc-gaji').textContent            = Fmt.currency(gaji);
+  el('calc-lain').textContent            = Fmt.currency(lain);
+  el('calc-total-pe').textContent        = Fmt.currency(totalPe);
+  el('calc-laba-bersih').textContent     = Fmt.currency(labaBersih);
+  el('calc-laba-bersih').style.color     = labaBersih >= 0 ? 'var(--success)' : 'var(--danger)';
+
+  const s = el('status-laba');
+  if (totalPendapatan === 0) {
+    s.textContent = 'Isi data di kiri untuk melihat kalkulasi';
+    s.style.background = '#f5f5f5'; s.style.color = '#888';
+  } else if (labaBersih > 0) {
+    s.textContent = `✅ PROFIT  +${Fmt.currency(labaBersih)}`;
+    s.style.background = '#e8f5e9'; s.style.color = 'var(--success)';
+  } else if (labaBersih === 0) {
+    s.textContent = '⚖️ IMPAS (Break Even)';
+    s.style.background = '#fff9c4'; s.style.color = '#f57f17';
+  } else {
+    s.textContent = `⚠️ RUGI  ${Fmt.currency(labaBersih)}`;
+    s.style.background = '#ffebee'; s.style.color = 'var(--danger)';
+  }
+}
+
+function getProdukData() {
+  return barisProduk.map(id => {
+    if (!el('produk-qty-' + id)) return null;
+    const sel  = document.querySelector(`#row-${id} .produk-select`);
+    let nama   = sel.value === '0'
+      ? (el('produk-nama-' + id)?.value?.trim() || '')
+      : sel.options[sel.selectedIndex]?.text || '';
+    const qty     = parseFloat(el('produk-qty-'   + id).value) || 0;
+    const harga   = parseFloat(el('produk-harga-' + id).value) || 0;
+    return { nama, qty, harga, subtotal: qty * harga };
+  }).filter(x => x && x.nama && x.qty > 0);
+}
+
+async function simpanLaporan() {
+  const tanggal = el('lp-tanggal').value;
+  if (!tanggal) { showAlert('alert-box', 'Tanggal laporan wajib diisi!', 'danger'); return; }
+  const produk = getProdukData();
+  if (produk.length === 0) { showAlert('alert-box', 'Tambahkan minimal 1 produk terjual!', 'danger'); return; }
+
+  const btn = el('btn-simpan-laporan');
+  btn.disabled = true; btn.textContent = '⏳ Menyimpan…';
+
+  const res = await API.post('api/laporan.php', {
+    tanggal,
+    jam_buka:          el('lp-jam-buka').value,
+    jam_tutup:         el('lp-jam-tutup').value,
+    produk,
+    hpp:               parseFloat(el('lp-hpp').value)  || 0,
+    pengeluaran_ops:   parseFloat(el('lp-ops').value)  || 0,
+    pengeluaran_gaji:  parseFloat(el('lp-gaji').value) || 0,
+    pengeluaran_lain:  parseFloat(el('lp-lain').value) || 0,
+    catatan:           el('lp-catatan').value.trim(),
+  });
+
+  btn.disabled = false; btn.textContent = '💾 Simpan Laporan Harian';
+  if (res && res.success) {
+    showAlert('alert-box',
+      `✅ Laporan <strong>${Fmt.dateShort(tanggal)}</strong> berhasil disimpan! Laba bersih: <strong>${Fmt.currency(res.laba_bersih)}</strong>`,
+      'success', 5000);
+    resetForm();
+  } else {
+    showAlert('alert-box', '❌ Gagal menyimpan: ' + (res?.message || 'Error'), 'danger');
+  }
+}
+
+function resetForm() {
+  el('lp-tanggal').value   = Fmt.today();
+  el('lp-jam-buka').value  = '09:00';
+  el('lp-jam-tutup').value = '21:00';
+  el('lp-hpp').value = el('lp-ops').value = el('lp-gaji').value = el('lp-lain').value = 0;
+  el('lp-catatan').value = '';
+  el('tbl-produk-input').innerHTML = '';
+  barisProduk = []; rowCounter = 0;
+  hitungTotal();
+  tambahBarisProduk('FC Original 1 Pcs', 12000);
+  tambahBarisProduk('FC Spicy 1 Pcs',    13000);
+  tambahBarisProduk('Paket Hemat 5 Pcs', 55000);
+}
+
+['lp-hpp','lp-ops','lp-gaji','lp-lain'].forEach(id => {
+  el(id)?.addEventListener('input', hitungTotal);
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  el('lp-tanggal').value = Fmt.today();
+  tambahBarisProduk('FC Original 1 Pcs', 12000);
+  tambahBarisProduk('FC Spicy 1 Pcs',    13000);
+  tambahBarisProduk('Paket Hemat 5 Pcs', 55000);
+});
+</script>
+</body>
+</html>

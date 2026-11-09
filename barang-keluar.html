@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Barang Keluar – D'one Fried Chicken</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sidebar-brand">
+    <div class="logo-icon">🍗</div>
+    <h1>D'one Fried Chicken</h1>
+    <p>Manajemen Usaha</p>
+  </div>
+  <div class="sidebar-nav">
+    <a href="index.html"><span class="nav-icon">🏠</span><span>Dashboard</span></a>
+    <div class="nav-section">Stok & Penjualan</div>
+    <a href="barang-masuk.html"><span class="nav-icon">📦</span><span>Barang Masuk</span></a>
+    <a href="barang-keluar.html"><span class="nav-icon">🛒</span><span>Barang Keluar</span></a>
+    <div class="nav-section">Laporan</div>
+    <a href="laporan-harian.html"><span class="nav-icon">📝</span><span>Input Laporan Harian</span></a>
+    <a href="arsip-laporan.html"><span class="nav-icon">🗂️</span><span>Arsip Laporan</span></a>
+    <a href="pengeluaran.html"><span class="nav-icon">💸</span><span>Pengeluaran</span></a>
+  </div>
+  <div class="sidebar-footer">v1.0 © 2025</div>
+</nav>
+
+<div class="main">
+  <div class="topbar">
+    <h2>🛒 Data Barang Keluar (Penjualan)</h2>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <span id="user-info" style="font-size:12px;color:var(--muted);"></span>
+      <span class="topbar-right" id="today-label"></span>
+    </div>
+  </div>
+
+  <div class="content">
+    <div id="alert-box"></div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>➕ Tambah Data Penjualan</h3>
+        <span class="text-muted" style="font-size:12px;">Produk yang terjual hari ini</span>
+      </div>
+      <div class="card-body">
+        <form id="form-bk" autocomplete="off">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Tanggal *</label>
+              <input type="date" id="bk-tanggal" required />
+            </div>
+            <div class="form-group">
+              <label>Nama Produk *</label>
+              <select id="bk-produk" required>
+                <option value="">-- Pilih Produk --</option>
+                <option>FC Original 1 Pcs</option><option>FC Spicy 1 Pcs</option>
+                <option>FC Krispy 1 Pcs</option><option>Paket Hemat 5 Pcs</option>
+                <option>Paket Keluarga 10 Pcs</option><option>Sayap FC</option>
+                <option>Paha FC</option><option>Dada FC</option><option>Lainnya</option>
+              </select>
+            </div>
+            <div class="form-group" id="produk-custom-group" style="display:none;">
+              <label>Nama Produk Lainnya *</label>
+              <input type="text" id="bk-produk-custom" placeholder="Masukkan nama produk" />
+            </div>
+            <div class="form-group">
+              <label>Jumlah Terjual *</label>
+              <input type="number" id="bk-jumlah" placeholder="cth: 25" min="1" required />
+            </div>
+            <div class="form-group">
+              <label>Harga Satuan (Rp) *</label>
+              <input type="number" id="bk-harga" placeholder="cth: 12000" min="0" required />
+            </div>
+            <div class="form-group">
+              <label>Total Pendapatan (Rp)</label>
+              <input type="text" id="bk-total" readonly placeholder="Otomatis terhitung" />
+            </div>
+          </div>
+          <div class="form-grid mt-1">
+            <div class="form-group">
+              <label>Keterangan</label>
+              <input type="text" id="bk-keterangan" placeholder="Opsional" />
+            </div>
+          </div>
+          <div class="flex-end mt-2" style="display:flex;gap:10px;">
+            <button type="button" class="btn btn-outline" onclick="resetFormBk()">🔄 Reset</button>
+            <button type="submit" class="btn btn-primary" id="btn-simpan">💾 Simpan</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>📋 Daftar Penjualan</h3>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <input type="date" id="filter-tanggal" style="border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:12px;" />
+          <button class="btn btn-outline btn-sm" onclick="filterBk()">🔍 Filter</button>
+          <button class="btn btn-sm" style="background:#eee;color:var(--text);" onclick="resetFilter()">✖ Reset</button>
+        </div>
+      </div>
+      <div class="card-body" style="padding-bottom:8px;">
+        <div style="display:flex;gap:16px;margin-bottom:12px;flex-wrap:wrap;">
+          <div class="stat-card" style="flex:1;min-width:140px;padding:12px 16px;">
+            <div class="stat-icon" style="font-size:22px;">🛒</div>
+            <div class="stat-info"><div class="label">Total Transaksi</div><div class="value" id="sum-total-item" style="font-size:18px;">0</div></div>
+          </div>
+          <div class="stat-card" style="flex:1;min-width:140px;padding:12px 16px;">
+            <div class="stat-icon" style="font-size:22px;">🍗</div>
+            <div class="stat-info"><div class="label">Total Terjual</div><div class="value" id="sum-total-qty" style="font-size:18px;">0 pcs</div></div>
+          </div>
+          <div class="stat-card" style="flex:1;min-width:160px;padding:12px 16px;">
+            <div class="stat-icon" style="font-size:22px;">💰</div>
+            <div class="stat-info"><div class="label">Total Pendapatan</div><div class="value" id="sum-total-nominal" style="font-size:18px;">Rp 0</div></div>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>#</th><th>Tanggal</th><th>Nama Produk</th><th>Jumlah</th><th>Harga Satuan</th><th>Total</th><th>Keterangan</th><th>Aksi</th></tr>
+            </thead>
+            <tbody id="tbl-bk"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>🏆 Ringkasan per Produk</h3>
+        <span class="text-muted" style="font-size:12px;">Semua data</span>
+      </div>
+      <div class="card-body" style="padding:0;">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Nama Produk</th><th>Total Terjual</th><th>Total Pendapatan</th></tr></thead>
+            <tbody id="tbl-per-produk"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+async function loadBk(filter = null) {
+  setLoading('tbl-bk', 8);
+  const url = filter ? `api/barang_keluar.php?tanggal=${filter}` : 'api/barang_keluar.php';
+  const res = await API.get(url);
+  if (!res || !res.success) return;
+  const data = res.data;
+
+  el('sum-total-item').textContent    = data.length;
+  el('sum-total-qty').textContent     = Fmt.number(data.reduce((s, b) => s + b.jumlah, 0)) + ' pcs';
+  el('sum-total-nominal').textContent = Fmt.currency(data.reduce((s, b) => s + b.total, 0));
+
+  el('tbl-bk').innerHTML = data.length === 0
+    ? '<tr><td colspan="8" class="text-center text-muted" style="padding:20px;">Belum ada data penjualan</td></tr>'
+    : data.map((b, i) => `
+      <tr>
+        <td class="text-muted">${i + 1}</td>
+        <td>${Fmt.dateShort(b.tanggal)}</td>
+        <td class="fw-bold">${b.nama_produk}</td>
+        <td>${Fmt.number(b.jumlah)}</td>
+        <td>${Fmt.currency(b.harga_satuan)}</td>
+        <td class="fw-bold text-success">${Fmt.currency(b.total)}</td>
+        <td class="text-muted">${b.keterangan || '-'}</td>
+        <td><button class="btn btn-danger btn-sm" onclick="hapusBk(${b.id})">🗑️ Hapus</button></td>
+      </tr>`).join('');
+
+  buildRingkasanProduk();
+}
+
+async function buildRingkasanProduk() {
+  const res = await API.get('api/barang_keluar.php');
+  if (!res || !res.success) return;
+  const map = {};
+  res.data.forEach(b => {
+    if (!map[b.nama_produk]) map[b.nama_produk] = { qty: 0, total: 0 };
+    map[b.nama_produk].qty   += b.jumlah;
+    map[b.nama_produk].total += b.total;
+  });
+  const rows = Object.entries(map).sort((a, b) => b[1].total - a[1].total);
+  el('tbl-per-produk').innerHTML = rows.length === 0
+    ? '<tr><td colspan="3" class="text-center text-muted">Belum ada data</td></tr>'
+    : rows.map(([nama, v], i) => `
+      <tr>
+        <td>${i===0?'🥇':i===1?'🥈':i===2?'🥉':''} ${nama}</td>
+        <td>${Fmt.number(v.qty)} pcs</td>
+        <td class="fw-bold">${Fmt.currency(v.total)}</td>
+      </tr>`).join('');
+}
+
+async function hapusBk(id) {
+  if (!confirmDelete('Hapus data penjualan ini?')) return;
+  const res = await API.delete(`api/barang_keluar.php?id=${id}`);
+  if (res && res.success) {
+    showAlert('alert-box', 'Data berhasil dihapus.', 'success');
+    loadBk(el('filter-tanggal').value || null);
+  }
+}
+
+function filterBk()   { loadBk(el('filter-tanggal').value || null); }
+function resetFilter() { el('filter-tanggal').value = ''; loadBk(); }
+
+function resetFormBk() {
+  el('form-bk').reset();
+  el('bk-tanggal').value = Fmt.today();
+  el('bk-total').value   = '';
+  el('produk-custom-group').style.display = 'none';
+}
+
+el('bk-produk').addEventListener('change', function () {
+  el('produk-custom-group').style.display = this.value === 'Lainnya' ? 'flex' : 'none';
+  if (this.value !== 'Lainnya') el('bk-produk-custom').value = '';
+});
+
+['bk-jumlah','bk-harga'].forEach(id => {
+  el(id).addEventListener('input', () => {
+    const qty   = parseFloat(el('bk-jumlah').value) || 0;
+    const harga = parseFloat(el('bk-harga').value)  || 0;
+    el('bk-total').value = (qty * harga).toLocaleString('id-ID');
+  });
+});
+
+el('form-bk').addEventListener('submit', async function (e) {
+  e.preventDefault();
+  const produk = el('bk-produk').value === 'Lainnya'
+    ? el('bk-produk-custom').value.trim()
+    : el('bk-produk').value;
+  if (!produk) { showAlert('alert-box', 'Nama produk wajib diisi!', 'danger'); return; }
+
+  const btn = el('btn-simpan');
+  btn.disabled = true; btn.textContent = '⏳ Menyimpan…';
+
+  const res = await API.post('api/barang_keluar.php', {
+    tanggal:      el('bk-tanggal').value,
+    nama_produk:  produk,
+    jumlah:       parseInt(el('bk-jumlah').value) || 0,
+    harga_satuan: parseFloat(el('bk-harga').value) || 0,
+    keterangan:   el('bk-keterangan').value.trim(),
+  });
+
+  btn.disabled = false; btn.textContent = '💾 Simpan';
+  if (res && res.success) {
+    showAlert('alert-box', `✅ Penjualan <strong>${produk}</strong> berhasil disimpan!`, 'success');
+    resetFormBk();
+    loadBk();
+  } else {
+    showAlert('alert-box', '❌ Gagal menyimpan: ' + (res?.message || 'Error'), 'danger');
+  }
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  el('bk-tanggal').value = Fmt.today();
+  loadBk();
+});
+</script>
+</body>
+</html>

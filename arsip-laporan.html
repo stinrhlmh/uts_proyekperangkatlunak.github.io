@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Arsip Laporan Harian – D'one Fried Chicken</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    .detail-panel { display: none; background: #fff9f4; border-top: 2px dashed var(--secondary); }
+    .detail-panel.open { display: table-row; }
+    .detail-inner { padding: 16px 20px; }
+    .produk-list { list-style: none; padding: 0; margin: 8px 0; }
+    .produk-list li { display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px dashed var(--border);font-size:13px; }
+    .produk-list li:last-child { border-bottom: none; }
+  </style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sidebar-brand">
+    <div class="logo-icon">🍗</div>
+    <h1>D'one Fried Chicken</h1>
+    <p>Manajemen Usaha</p>
+  </div>
+  <div class="sidebar-nav">
+    <a href="index.html"><span class="nav-icon">🏠</span><span>Dashboard</span></a>
+    <div class="nav-section">Stok & Penjualan</div>
+    <a href="barang-masuk.html"><span class="nav-icon">📦</span><span>Barang Masuk</span></a>
+    <a href="barang-keluar.html"><span class="nav-icon">🛒</span><span>Barang Keluar</span></a>
+    <div class="nav-section">Laporan</div>
+    <a href="laporan-harian.html"><span class="nav-icon">📝</span><span>Input Laporan Harian</span></a>
+    <a href="arsip-laporan.html"><span class="nav-icon">🗂️</span><span>Arsip Laporan</span></a>
+    <a href="pengeluaran.html"><span class="nav-icon">💸</span><span>Pengeluaran</span></a>
+  </div>
+  <div class="sidebar-footer">v1.0 © 2025</div>
+</nav>
+
+<div class="main">
+  <div class="topbar">
+    <h2>🗂️ Arsip Laporan Harian</h2>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <span id="user-info" style="font-size:12px;color:var(--muted);"></span>
+      <span class="topbar-right" id="today-label"></span>
+    </div>
+  </div>
+
+  <div class="content">
+    <div id="alert-box"></div>
+
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-icon">📅</div>
+        <div class="stat-info"><div class="label">Total Laporan</div><div class="value" id="sum-total-laporan">0</div><div class="sub">hari tercatat</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">💰</div>
+        <div class="stat-info"><div class="label">Total Pendapatan</div><div class="value" id="sum-pendapatan">Rp 0</div><div class="sub">akumulasi semua laporan</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">📈</div>
+        <div class="stat-info"><div class="label">Total Laba Bersih</div><div class="value" id="sum-laba">Rp 0</div><div class="sub" id="sum-laba-sub">—</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">🏆</div>
+        <div class="stat-info"><div class="label">Rata-rata Pendapatan/Hari</div><div class="value" id="sum-avg">Rp 0</div><div class="sub">per hari operasi</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>📋 Daftar Arsip Laporan</h3>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <select id="filter-bulan" style="border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:12px;">
+            <option value="">-- Semua Bulan --</option>
+          </select>
+          <button class="btn btn-outline btn-sm" onclick="filterArsip()">🔍 Filter</button>
+          <button class="btn btn-sm" style="background:#eee;color:var(--text);" onclick="resetFilter()">✖ Reset</button>
+          <a href="laporan-harian.html" class="btn btn-primary btn-sm">➕ Input Laporan</a>
+        </div>
+      </div>
+      <div class="card-body" style="padding:0;">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>#</th><th>Tanggal</th><th>Jam Operasi</th><th>Pendapatan</th><th>Total Pengeluaran</th><th>HPP</th><th>Laba Kotor</th><th>Laba Bersih</th><th>Status</th><th>Aksi</th></tr>
+            </thead>
+            <tbody id="tbl-arsip"><tr><td colspan="10" class="text-center text-muted" style="padding:24px;">⏳ Memuat…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+async function loadArsip(filterBulan = null) {
+  setLoading('tbl-arsip', 10);
+  const url = filterBulan ? `api/laporan.php?bulan=${filterBulan}` : 'api/laporan.php';
+  const res = await API.get(url);
+  if (!res || !res.success) return;
+  const data = res.data;
+
+  // Populate filter bulan
+  const allRes  = filterBulan ? await API.get('api/laporan.php') : res;
+  const allData = allRes.data || data;
+  const bulanSet = new Set(allData.map(l => l.tanggal.substring(0,7)));
+  const sel = el('filter-bulan');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">-- Semua Bulan --</option>';
+  [...bulanSet].sort().reverse().forEach(ym => {
+    const [y, m] = ym.split('-');
+    const label = new Date(y, parseInt(m)-1).toLocaleDateString('id-ID', { month:'long', year:'numeric' });
+    sel.innerHTML += `<option value="${ym}" ${ym===cur?'selected':''}>${label}</option>`;
+  });
+
+  // Summary
+  const totalPend = data.reduce((s, l) => s + l.total_pendapatan, 0);
+  const totalLaba = data.reduce((s, l) => s + l.laba_bersih, 0);
+  el('sum-total-laporan').textContent = data.length;
+  el('sum-pendapatan').textContent    = Fmt.currency(totalPend);
+  el('sum-laba').textContent          = Fmt.currency(totalLaba);
+  el('sum-laba').style.color          = totalLaba >= 0 ? 'var(--success)' : 'var(--danger)';
+  el('sum-laba-sub').textContent      = totalLaba >= 0 ? '✅ Total profit' : '⚠️ Total rugi';
+  el('sum-avg').textContent           = data.length > 0 ? Fmt.currency(Math.round(totalPend / data.length)) : 'Rp 0';
+
+  const tbody = el('tbl-arsip');
+  if (data.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="10" class="text-center text-muted" style="padding:30px;">
+      Belum ada laporan. <a href="laporan-harian.html">➕ Input Laporan Pertama</a>
+    </td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = '';
+  data.forEach((l, i) => {
+    const profit = l.laba_bersih >= 0;
+    const tr = document.createElement('tr');
+    tr.style.cursor = 'pointer';
+    tr.innerHTML = `
+      <td class="text-muted">${i + 1}</td>
+      <td class="fw-bold">${Fmt.date(l.tanggal)}</td>
+      <td class="text-muted">${l.jam_buka||'-'} – ${l.jam_tutup||'-'}</td>
+      <td class="fw-bold" style="color:var(--primary);">${Fmt.currency(l.total_pendapatan)}</td>
+      <td class="text-danger">${Fmt.currency(l.total_pengeluaran)}</td>
+      <td class="text-muted">${Fmt.currency(l.hpp)}</td>
+      <td>${Fmt.currency(l.laba_kotor)}</td>
+      <td class="fw-bold" style="color:${profit?'var(--success)':'var(--danger)'};">${Fmt.currency(l.laba_bersih)}</td>
+      <td><span class="badge ${profit?'badge-green':'badge-red'}">${profit?'✅ Profit':'⚠️ Rugi'}</span></td>
+      <td>
+        <button class="btn btn-outline btn-sm" onclick="toggleDetail(event,'detail-${l.id}')">📄 Detail</button>
+        <button class="btn btn-danger btn-sm" onclick="hapusArsip(event,${l.id})">🗑️</button>
+      </td>`;
+    tbody.appendChild(tr);
+
+    // Baris detail
+    const trDetail = document.createElement('tr');
+    trDetail.id = 'detail-' + l.id;
+    trDetail.className = 'detail-panel';
+    const produkHtml = (l.produk && l.produk.length > 0)
+      ? `<ul class="produk-list">${l.produk.map(p => `<li><span>${p.nama} × ${Fmt.number(p.qty||0)}</span><span class="fw-bold">${Fmt.currency(p.subtotal)}</span></li>`).join('')}</ul>`
+      : '<p class="text-muted" style="font-size:12px;">Tidak ada detail produk</p>';
+
+    trDetail.innerHTML = `<td colspan="10"><div class="detail-inner">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:6px;">🍗 Produk Terjual</div>
+          ${produkHtml}
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:6px;">💸 Rincian Pengeluaran</div>
+          <div style="font-size:13px;">
+            <div style="display:flex;justify-content:space-between;padding:3px 0;"><span>HPP</span><span>${Fmt.currency(l.hpp)}</span></div>
+            <div style="display:flex;justify-content:space-between;padding:3px 0;"><span>Operasional</span><span>${Fmt.currency(l.pengeluaran_ops)}</span></div>
+            <div style="display:flex;justify-content:space-between;padding:3px 0;"><span>Gaji</span><span>${Fmt.currency(l.pengeluaran_gaji)}</span></div>
+            <div style="display:flex;justify-content:space-between;padding:3px 0;"><span>Lain-lain</span><span>${Fmt.currency(l.pengeluaran_lain)}</span></div>
+            <div style="display:flex;justify-content:space-between;padding:5px 0;border-top:2px solid var(--border);font-weight:700;margin-top:4px;"><span>TOTAL</span><span>${Fmt.currency(l.total_pengeluaran)}</span></div>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:6px;">📊 Ringkasan Laba</div>
+          <div class="summary-box" style="padding:12px 14px;">
+            <div class="summary-row"><span>Pendapatan</span><span>${Fmt.currency(l.total_pendapatan)}</span></div>
+            <div class="summary-row"><span>Total Biaya</span><span>${Fmt.currency(l.total_pengeluaran)}</span></div>
+            <div class="summary-row"><span>Laba Bersih</span><span style="color:${l.laba_bersih>=0?'var(--success)':'var(--danger)'};">${Fmt.currency(l.laba_bersih)}</span></div>
+          </div>
+          ${l.catatan ? `<div style="margin-top:8px;font-size:12px;color:var(--muted);">📌 ${l.catatan}</div>` : ''}
+        </div>
+      </div>
+    </div></td>`;
+    tbody.appendChild(trDetail);
+  });
+}
+
+function toggleDetail(e, id) {
+  e.stopPropagation();
+  el(id)?.classList.toggle('open');
+}
+
+async function hapusArsip(e, id) {
+  e.stopPropagation();
+  if (!confirmDelete('Hapus laporan ini dari arsip?')) return;
+  const res = await API.delete(`api/laporan.php?id=${id}`);
+  if (res && res.success) {
+    showAlert('alert-box', 'Laporan berhasil dihapus.', 'success');
+    loadArsip(el('filter-bulan').value || null);
+  }
+}
+
+function filterArsip() { loadArsip(el('filter-bulan').value || null); }
+function resetFilter()  { el('filter-bulan').value = ''; loadArsip(); }
+
+document.addEventListener('DOMContentLoaded', () => loadArsip());
+</script>
+</body>
+</html>

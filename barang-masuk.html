@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Barang Masuk – D'one Fried Chicken</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sidebar-brand">
+    <div class="logo-icon">🍗</div>
+    <h1>D'one Fried Chicken</h1>
+    <p>Manajemen Usaha</p>
+  </div>
+  <div class="sidebar-nav">
+    <a href="index.html"><span class="nav-icon">🏠</span><span>Dashboard</span></a>
+    <div class="nav-section">Stok & Penjualan</div>
+    <a href="barang-masuk.html"><span class="nav-icon">📦</span><span>Barang Masuk</span></a>
+    <a href="barang-keluar.html"><span class="nav-icon">🛒</span><span>Barang Keluar</span></a>
+    <div class="nav-section">Laporan</div>
+    <a href="laporan-harian.html"><span class="nav-icon">📝</span><span>Input Laporan Harian</span></a>
+    <a href="arsip-laporan.html"><span class="nav-icon">🗂️</span><span>Arsip Laporan</span></a>
+    <a href="pengeluaran.html"><span class="nav-icon">💸</span><span>Pengeluaran</span></a>
+  </div>
+  <div class="sidebar-footer">v1.0 © 2025</div>
+</nav>
+
+<div class="main">
+  <div class="topbar">
+    <h2>📦 Data Barang Masuk</h2>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <span id="user-info" style="font-size:12px;color:var(--muted);"></span>
+      <span class="topbar-right" id="today-label"></span>
+    </div>
+  </div>
+
+  <div class="content">
+    <div id="alert-box"></div>
+
+    <div class="card">
+      <div class="card-header"><h3>➕ Tambah Barang Masuk</h3></div>
+      <div class="card-body">
+        <form id="form-bm" autocomplete="off">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Tanggal *</label>
+              <input type="date" id="bm-tanggal" required />
+            </div>
+            <div class="form-group">
+              <label>Nama Barang *</label>
+              <input type="text" id="bm-nama" placeholder="cth: Ayam Potong" required />
+            </div>
+            <div class="form-group">
+              <label>Kategori *</label>
+              <select id="bm-kategori" required>
+                <option value="">-- Pilih --</option>
+                <option>Bahan Baku</option><option>Bumbu</option>
+                <option>Kemasan</option><option>Minuman</option><option>Lainnya</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Jumlah *</label>
+              <input type="number" id="bm-jumlah" placeholder="cth: 20" min="0" step="any" required />
+            </div>
+            <div class="form-group">
+              <label>Satuan *</label>
+              <select id="bm-satuan" required>
+                <option value="">-- Pilih --</option>
+                <option>kg</option><option>gram</option><option>liter</option>
+                <option>pcs</option><option>lusin</option><option>pack</option><option>karung</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Harga Satuan (Rp) *</label>
+              <input type="number" id="bm-harga" placeholder="cth: 35000" min="0" required />
+            </div>
+            <div class="form-group">
+              <label>Total Harga (Rp)</label>
+              <input type="text" id="bm-total" readonly placeholder="Otomatis terhitung" />
+            </div>
+            <div class="form-group">
+              <label>Supplier</label>
+              <input type="text" id="bm-supplier" placeholder="Nama supplier/toko" />
+            </div>
+          </div>
+          <div class="form-grid mt-1">
+            <div class="form-group">
+              <label>Keterangan</label>
+              <input type="text" id="bm-keterangan" placeholder="Opsional" />
+            </div>
+          </div>
+          <div class="flex-end mt-2" style="display:flex;gap:10px;">
+            <button type="button" class="btn btn-outline" onclick="resetFormBm()">🔄 Reset</button>
+            <button type="submit" class="btn btn-primary" id="btn-simpan">💾 Simpan</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>📋 Daftar Barang Masuk</h3>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input type="date" id="filter-tanggal" style="border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:12px;" />
+          <button class="btn btn-outline btn-sm" onclick="filterBm()">🔍 Filter</button>
+          <button class="btn btn-sm" style="background:#eee;color:var(--text);" onclick="resetFilter()">✖ Reset</button>
+        </div>
+      </div>
+      <div class="card-body" style="padding-bottom:8px;">
+        <div style="display:flex;gap:16px;margin-bottom:12px;flex-wrap:wrap;">
+          <div class="stat-card" style="flex:1;min-width:140px;padding:12px 16px;">
+            <div class="stat-icon" style="font-size:22px;">📦</div>
+            <div class="stat-info"><div class="label">Total Item</div><div class="value" id="sum-total-item" style="font-size:18px;">0</div></div>
+          </div>
+          <div class="stat-card" style="flex:1;min-width:160px;padding:12px 16px;">
+            <div class="stat-icon" style="font-size:22px;">💰</div>
+            <div class="stat-info"><div class="label">Total Pembelian</div><div class="value" id="sum-total-nominal" style="font-size:18px;">Rp 0</div></div>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>#</th><th>Tanggal</th><th>Nama Barang</th><th>Kategori</th><th>Jumlah</th><th>Satuan</th><th>Harga Satuan</th><th>Total</th><th>Supplier</th><th>Keterangan</th><th>Aksi</th></tr>
+            </thead>
+            <tbody id="tbl-bm"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+async function loadBm(filter = null) {
+  setLoading('tbl-bm', 11);
+  const url = filter ? `api/barang_masuk.php?tanggal=${filter}` : 'api/barang_masuk.php';
+  const res = await API.get(url);
+  if (!res || !res.success) return;
+  const data = res.data;
+
+  el('sum-total-item').textContent    = data.length;
+  el('sum-total-nominal').textContent = Fmt.currency(data.reduce((s, b) => s + b.total, 0));
+
+  el('tbl-bm').innerHTML = data.length === 0
+    ? '<tr><td colspan="11" class="text-center text-muted" style="padding:20px;">Belum ada data barang masuk</td></tr>'
+    : data.map((b, i) => `
+      <tr>
+        <td class="text-muted">${i + 1}</td>
+        <td>${Fmt.dateShort(b.tanggal)}</td>
+        <td class="fw-bold">${b.nama_barang}</td>
+        <td><span class="badge badge-blue">${b.kategori}</span></td>
+        <td>${Fmt.number(b.jumlah)}</td>
+        <td>${b.satuan}</td>
+        <td>${Fmt.currency(b.harga_satuan)}</td>
+        <td class="fw-bold">${Fmt.currency(b.total)}</td>
+        <td>${b.supplier || '-'}</td>
+        <td class="text-muted">${b.keterangan || '-'}</td>
+        <td><button class="btn btn-danger btn-sm" onclick="hapusBm(${b.id})">🗑️ Hapus</button></td>
+      </tr>`).join('');
+}
+
+async function hapusBm(id) {
+  if (!confirmDelete('Hapus data barang masuk ini?')) return;
+  const res = await API.delete(`api/barang_masuk.php?id=${id}`);
+  if (res && res.success) {
+    showAlert('alert-box', 'Data berhasil dihapus.', 'success');
+    loadBm(el('filter-tanggal').value || null);
+  }
+}
+
+function filterBm()  { loadBm(el('filter-tanggal').value || null); }
+function resetFilter(){ el('filter-tanggal').value = ''; loadBm(); }
+
+function resetFormBm() {
+  el('form-bm').reset();
+  el('bm-tanggal').value = Fmt.today();
+  el('bm-total').value   = '';
+}
+
+['bm-jumlah','bm-harga'].forEach(id => {
+  el(id).addEventListener('input', () => {
+    const qty   = parseFloat(el('bm-jumlah').value) || 0;
+    const harga = parseFloat(el('bm-harga').value)  || 0;
+    el('bm-total').value = (qty * harga).toLocaleString('id-ID');
+  });
+});
+
+el('form-bm').addEventListener('submit', async function (e) {
+  e.preventDefault();
+  const btn = el('btn-simpan');
+  btn.disabled = true; btn.textContent = '⏳ Menyimpan…';
+
+  const qty   = parseFloat(el('bm-jumlah').value) || 0;
+  const harga = parseFloat(el('bm-harga').value)  || 0;
+  const res = await API.post('api/barang_masuk.php', {
+    tanggal:      el('bm-tanggal').value,
+    nama_barang:  el('bm-nama').value.trim(),
+    kategori:     el('bm-kategori').value,
+    jumlah:       qty,
+    satuan:       el('bm-satuan').value,
+    harga_satuan: harga,
+    supplier:     el('bm-supplier').value.trim(),
+    keterangan:   el('bm-keterangan').value.trim(),
+  });
+
+  btn.disabled = false; btn.textContent = '💾 Simpan';
+  if (res && res.success) {
+    showAlert('alert-box', `✅ Barang berhasil ditambahkan!`, 'success');
+    resetFormBm();
+    loadBm();
+  } else {
+    showAlert('alert-box', '❌ Gagal menyimpan: ' + (res?.message || 'Error'), 'danger');
+  }
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  el('bm-tanggal').value = Fmt.today();
+  loadBm();
+});
+</script>
+</body>
+</html>

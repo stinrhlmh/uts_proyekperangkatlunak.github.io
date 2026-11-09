@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login – D'one Fried Chicken</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+      background: #e65c00;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .login-wrap {
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .login-brand {
+      text-align: center;
+      margin-bottom: 28px;
+      color: #fff;
+    }
+    .login-brand .logo { font-size: 56px; line-height: 1; }
+    .login-brand h1   { font-size: 26px; font-weight: 800; margin-top: 8px; letter-spacing: -.5px; }
+    .login-brand p    { font-size: 13px; opacity: .85; margin-top: 4px; }
+
+    .login-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 32px 36px;
+      box-shadow: 0 8px 40px rgba(0,0,0,.25);
+    }
+    .login-card h2 {
+      font-size: 17px;
+      font-weight: 700;
+      color: #2d2010;
+      margin-bottom: 22px;
+    }
+
+    .form-group { display: flex; flex-direction: column; gap: 5px; margin-bottom: 16px; }
+    .form-group label { font-size: 12px; font-weight: 600; color: #7a6050; text-transform: uppercase; letter-spacing: .04em; }
+    .form-group input {
+      border: 1.5px solid #f0d9c8;
+      border-radius: 8px;
+      padding: 11px 14px;
+      font-size: 14px;
+      color: #2d2010;
+      background: #fff8f0;
+      outline: none;
+      transition: border-color .18s, background .18s;
+      font-family: inherit;
+    }
+    .form-group input:focus { border-color: #e65c00; background: #fff; }
+
+    .input-pw-wrap { position: relative; }
+    .input-pw-wrap input { padding-right: 42px; width: 100%; }
+    .toggle-pw {
+      position: absolute; right: 12px; top: 50%;
+      transform: translateY(-50%);
+      background: none; border: none; cursor: pointer;
+      font-size: 16px; color: #7a6050; padding: 0;
+      line-height: 1;
+    }
+
+    .alert-error {
+      background: #ffebee;
+      border: 1px solid #ef9a9a;
+      color: #c62828;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 13px;
+      margin-bottom: 16px;
+      display: none;
+    }
+
+    .btn-login {
+      width: 100%;
+      padding: 13px;
+      background: #e65c00;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 6px;
+      transition: background .18s, transform .1s;
+      font-family: inherit;
+    }
+    .btn-login:hover  { background: #bf4a00; }
+    .btn-login:active { transform: scale(.98); }
+    .btn-login:disabled { opacity: .6; cursor: not-allowed; }
+
+    .login-hint {
+      margin-top: 20px;
+      background: #fff8f0;
+      border: 1px dashed #f0d9c8;
+      border-radius: 8px;
+      padding: 12px 14px;
+      font-size: 12px;
+      color: #7a6050;
+    }
+    .login-hint strong { color: #e65c00; }
+
+    .login-footer {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 11px;
+      color: rgba(255,255,255,.65);
+    }
+  </style>
+</head>
+<body>
+
+<div class="login-wrap">
+  <div class="login-brand">
+    <div class="logo">🍗</div>
+    <h1>D'one Fried Chicken</h1>
+    <p>Sistem Manajemen UMKM</p>
+  </div>
+
+  <div class="login-card">
+    <h2>🔐 Masuk ke Sistem</h2>
+
+    <div class="alert-error" id="alert-error"></div>
+
+    <form id="form-login" autocomplete="off">
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" id="username" placeholder="Masukkan username" autofocus />
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <div class="input-pw-wrap">
+          <input type="password" id="password" placeholder="Masukkan password" />
+          <button type="button" class="toggle-pw" onclick="togglePassword()" title="Tampilkan/sembunyikan">👁️</button>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-login" id="btn-submit">Masuk →</button>
+    </form>
+
+    <div class="login-hint">
+      💡 <strong>Akun Default:</strong><br>
+      Username: <strong>admin</strong> &nbsp;|&nbsp; Password: <strong>admin123</strong><br>
+      Username: <strong>kasir</strong> &nbsp;|&nbsp; Password: <strong>kasir123</strong>
+    </div>
+  </div>
+
+  <div class="login-footer">v1.0 © 2025 D'one Fried Chicken</div>
+</div>
+
+<script>
+  function togglePassword() {
+    const inp = document.getElementById('password');
+    const btn = document.querySelector('.toggle-pw');
+    if (inp.type === 'password') { inp.type = 'text';     btn.textContent = '🙈'; }
+    else                         { inp.type = 'password'; btn.textContent = '👁️'; }
+  }
+
+  document.getElementById('form-login').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    const alertEl = document.getElementById('alert-error');
+    const btnEl   = document.getElementById('btn-submit');
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value;
+
+    alertEl.style.display = 'none';
+    btnEl.disabled = true;
+    btnEl.textContent = 'Memproses…';
+
+    try {
+      const res  = await fetch('api/auth.php?action=login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        btnEl.textContent = '✅ Berhasil masuk…';
+        setTimeout(() => window.location.replace('index.html'), 400);
+      } else {
+        alertEl.textContent = '❌ ' + (data.message || 'Username atau password salah.');
+        alertEl.style.display = 'block';
+        document.getElementById('password').value = '';
+        document.getElementById('password').focus();
+        btnEl.disabled = false;
+        btnEl.textContent = 'Masuk →';
+        // Shake
+        btnEl.style.transform = 'translateX(-6px)';
+        setTimeout(() => btnEl.style.transform = 'translateX(6px)', 80);
+        setTimeout(() => btnEl.style.transform = 'translateX(0)',   160);
+      }
+    } catch (err) {
+      alertEl.textContent = '❌ Tidak dapat terhubung ke server. Pastikan XAMPP aktif.';
+      alertEl.style.display = 'block';
+      btnEl.disabled = false;
+      btnEl.textContent = 'Masuk →';
+    }
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Diagnostik – D'one Fried Chicken</title>
+  <style>
+    body { font-family: 'Segoe UI', sans-serif; max-width: 720px; margin: 40px auto; padding: 0 20px; background: #fff8f0; color: #2d2010; }
+    h1   { color: #e65c00; margin-bottom: 4px; }
+    p.sub { color: #7a6050; margin-bottom: 24px; font-size: 13px; }
+    .card { background: #fff; border: 1px solid #f0d9c8; border-radius: 10px; padding: 20px; margin-bottom: 16px; }
+    .card h3 { margin: 0 0 12px; font-size: 14px; color: #e65c00; }
+    .row  { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px dashed #f0d9c8; font-size: 13px; }
+    .row:last-child { border: none; }
+    .badge { padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+    .ok   { background: #e8f5e9; color: #2e7d32; }
+    .fail { background: #ffebee; color: #c62828; }
+    .warn { background: #fff3e0; color: #e65c00; }
+    .spin { background: #e3f2fd; color: #1565c0; }
+    pre   { background: #f5f5f5; border-radius: 6px; padding: 10px; font-size: 12px; overflow-x: auto; margin-top: 8px; white-space: pre-wrap; }
+    .btn  { padding: 10px 20px; background: #e65c00; color: #fff; border: none; border-radius: 7px; font-size: 14px; font-weight: 600; cursor: pointer; margin-right: 8px; }
+    .btn:hover { background: #bf4a00; }
+    .btn-green { background: #2e7d32; }
+    .btn-green:hover { background: #1b5e20; }
+  </style>
+</head>
+<body>
+<h1>🔧 Diagnostik Sistem</h1>
+<p class="sub">D'one Fried Chicken — Cek otomatis semua komponen</p>
+
+<div class="card">
+  <h3>1️⃣ Koneksi ke PHP API</h3>
+  <div id="check-php" class="row"><span>Status API</span><span class="badge spin">Mengecek…</span></div>
+</div>
+
+<div class="card">
+  <h3>2️⃣ Koneksi Database MySQL</h3>
+  <div id="check-db" class="row"><span>Status Database</span><span class="badge spin">Mengecek…</span></div>
+  <pre id="check-db-msg" style="display:none;"></pre>
+</div>
+
+<div class="card">
+  <h3>3️⃣ Tabel Database</h3>
+  <div id="check-tables"></div>
+</div>
+
+<div class="card">
+  <h3>4️⃣ Data Users</h3>
+  <div id="check-users"><div class="row"><span>Users</span><span class="badge spin">Mengecek…</span></div></div>
+  <div style="margin-top:10px;">
+    <button class="btn btn-green" onclick="seedUsers()">🔑 Set Password Users (admin123 / kasir123)</button>
+    <span id="seed-result" style="font-size:13px;margin-left:8px;"></span>
+  </div>
+</div>
+
+<div class="card">
+  <h3>5️⃣ Test Login</h3>
+  <div style="display:flex;gap:8px;margin-bottom:10px;">
+    <input id="test-user" value="admin" style="border:1px solid #f0d9c8;border-radius:6px;padding:7px 12px;font-size:13px;width:140px;" />
+    <input id="test-pass" value="admin123" type="password" style="border:1px solid #f0d9c8;border-radius:6px;padding:7px 12px;font-size:13px;width:140px;" />
+    <button class="btn" onclick="testLogin()">🔐 Test Login</button>
+  </div>
+  <div id="check-login"></div>
+  <pre id="check-login-raw" style="display:none;"></pre>
+</div>
+
+<div style="margin-top:8px;">
+  <button class="btn" onclick="location.reload()">🔄 Ulangi Cek</button>
+  <a href="login.html"><button class="btn btn-green">🚀 Ke Halaman Login</button></a>
+</div>
+
+<script>
+function badge(text, type) {
+  return `<span class="badge ${type}">${text}</span>`;
+}
+
+async function runChecks() {
+  // ── 1. Cek PHP bisa diakses ──
+  try {
+    const r = await fetch('api/diag.php?action=ping', { credentials: 'same-origin' });
+    const txt = await r.text();
+    let data;
+    try { data = JSON.parse(txt); } catch(e) { throw new Error('Response bukan JSON: ' + txt.substring(0, 200)); }
+    document.getElementById('check-php').innerHTML =
+      `<span>PHP API</span>${badge('✅ OK — PHP ' + (data.php_version || '?'), 'ok')}`;
+  } catch(e) {
+    document.getElementById('check-php').innerHTML =
+      `<span>PHP API</span>${badge('❌ Gagal', 'fail')}`;
+    document.getElementById('check-php').insertAdjacentHTML('afterend',
+      `<pre style="color:#c62828;">Error: ${e.message}\n\nPastikan:\n• XAMPP Apache sudah nyala\n• File ada di C:\\xampp\\htdocs\\inventory\\</pre>`);
+    return;
+  }
+
+  // ── 2. Cek Database ──
+  try {
+    const r = await fetch('api/diag.php?action=db', { credentials: 'same-origin' });
+    const data = await r.json();
+    if (data.success) {
+      document.getElementById('check-db').innerHTML =
+        `<span>MySQL</span>${badge('✅ Terhubung ke database "' + data.db_name + '"', 'ok')}`;
+    } else {
+      document.getElementById('check-db').innerHTML =
+        `<span>MySQL</span>${badge('❌ ' + data.message, 'fail')}`;
+      document.getElementById('check-db-msg').style.display = 'block';
+      document.getElementById('check-db-msg').textContent =
+        'Solusi:\n1. Pastikan XAMPP MySQL sudah nyala\n2. Buka phpMyAdmin → Import file done_fc.sql\n3. Cek config di api/config.php (DB_USER, DB_PASS, DB_NAME)\n\nError: ' + data.message;
+      return;
+    }
+  } catch(e) {
+    document.getElementById('check-db').innerHTML = `<span>MySQL</span>${badge('❌ Error', 'fail')}`;
+    return;
+  }
+
+  // ── 3. Cek tabel ──
+  const r3 = await fetch('api/diag.php?action=tables', { credentials: 'same-origin' });
+  const d3 = await r3.json();
+  const tables = ['users','barang_masuk','barang_keluar','pengeluaran','laporan_harian','laporan_produk'];
+  document.getElementById('check-tables').innerHTML = tables.map(t => {
+    const exists = d3.tables && d3.tables.includes(t);
+    return `<div class="row"><span>${t}</span>${badge(exists ? '✅ Ada' : '❌ Tidak ada — import done_fc.sql!', exists ? 'ok' : 'fail')}</div>`;
+  }).join('');
+
+  // ── 4. Cek users ──
+  const r4 = await fetch('api/diag.php?action=users', { credentials: 'same-origin' });
+  const d4 = await r4.json();
+  if (d4.success && d4.users && d4.users.length > 0) {
+    document.getElementById('check-users').innerHTML = d4.users.map(u =>
+      `<div class="row"><span>👤 ${u.username} (${u.role})</span>${badge('✅ Ada' + (u.pw_ok ? ', password hash OK' : ' — ⚠️ Klik tombol Set Password!'), u.pw_ok ? 'ok' : 'warn')}</div>`
+    ).join('');
+  } else {
+    document.getElementById('check-users').innerHTML =
+      `<div class="row"><span>Users</span>${badge('❌ Tidak ada user — import done_fc.sql dulu!', 'fail')}</div>`;
+  }
+}
+
+async function seedUsers() {
+  const r = document.getElementById('seed-result');
+  r.textContent = '⏳ Memproses…';
+  try {
+    const res  = await fetch('api/diag.php?action=seed_users', { credentials: 'same-origin' });
+    const data = await res.json();
+    r.textContent = data.success ? '✅ ' + data.message : '❌ ' + data.message;
+    r.style.color = data.success ? '#2e7d32' : '#c62828';
+    setTimeout(runChecks, 500);
+  } catch(e) {
+    r.textContent = '❌ Gagal: ' + e.message;
+    r.style.color = '#c62828';
+  }
+}
+
+async function testLogin() {
+  const username = document.getElementById('test-user').value;
+  const password = document.getElementById('test-pass').value;
+  const el = document.getElementById('check-login');
+  const raw = document.getElementById('check-login-raw');
+  el.innerHTML = badge('⏳ Mengirim request…', 'spin');
+
+  try {
+    const res  = await fetch('api/auth.php?action=login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ username, password }),
+    });
+    const text = await res.text();
+    raw.style.display = 'block';
+    raw.textContent = 'HTTP Status: ' + res.status + '\nResponse:\n' + text;
+    let data;
+    try { data = JSON.parse(text); } catch(e) { el.innerHTML = badge('❌ Response bukan JSON', 'fail'); return; }
+
+    if (data.success) {
+      el.innerHTML = badge(`✅ Login berhasil! User: ${data.user?.nama} (${data.user?.role})`, 'ok');
+    } else {
+      el.innerHTML = badge('❌ ' + data.message, 'fail');
+    }
+  } catch(e) {
+    el.innerHTML = badge('❌ Fetch error: ' + e.message, 'fail');
+    raw.style.display = 'block';
+    raw.textContent = e.stack;
+  }
+}
+
+runChecks();
+</script>
+</body>
+</html>

@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pengeluaran – D'one Fried Chicken</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sidebar-brand">
+    <div class="logo-icon">🍗</div>
+    <h1>D'one Fried Chicken</h1>
+    <p>Manajemen Usaha</p>
+  </div>
+  <div class="sidebar-nav">
+    <a href="index.html"><span class="nav-icon">🏠</span><span>Dashboard</span></a>
+    <div class="nav-section">Stok & Penjualan</div>
+    <a href="barang-masuk.html"><span class="nav-icon">📦</span><span>Barang Masuk</span></a>
+    <a href="barang-keluar.html"><span class="nav-icon">🛒</span><span>Barang Keluar</span></a>
+    <div class="nav-section">Laporan</div>
+    <a href="laporan-harian.html"><span class="nav-icon">📝</span><span>Input Laporan Harian</span></a>
+    <a href="arsip-laporan.html"><span class="nav-icon">🗂️</span><span>Arsip Laporan</span></a>
+    <a href="pengeluaran.html"><span class="nav-icon">💸</span><span>Pengeluaran</span></a>
+  </div>
+  <div class="sidebar-footer">v1.0 © 2025</div>
+</nav>
+
+<div class="main">
+  <div class="topbar">
+    <h2>💸 Pengeluaran</h2>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <span id="user-info" style="font-size:12px;color:var(--muted);"></span>
+      <span class="topbar-right" id="today-label"></span>
+    </div>
+  </div>
+
+  <div class="content">
+    <div id="alert-box"></div>
+
+    <!-- Tab -->
+    <div style="display:flex;gap:0;margin-bottom:20px;border-radius:8px;overflow:hidden;border:1px solid var(--border);width:fit-content;">
+      <button id="tab-harian"   class="btn" style="border-radius:0;background:var(--primary);color:#fff;" onclick="setTab('harian')">📅 Harian</button>
+      <button id="tab-mingguan" class="btn" style="border-radius:0;background:#eee;color:var(--text);"    onclick="setTab('mingguan')">📊 Mingguan</button>
+      <button id="tab-semua"    class="btn" style="border-radius:0;background:#eee;color:var(--text);"    onclick="setTab('semua')">🗂️ Semua</button>
+    </div>
+
+    <!-- Form -->
+    <div class="card">
+      <div class="card-header"><h3>➕ Catat Pengeluaran</h3></div>
+      <div class="card-body">
+        <form id="form-pe" autocomplete="off">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Tanggal *</label>
+              <input type="date" id="pe-tanggal" required />
+            </div>
+            <div class="form-group">
+              <label>Kategori *</label>
+              <select id="pe-kategori" required>
+                <option value="">-- Pilih --</option>
+                <option>Bahan Baku</option><option>Operasional</option><option>Gaji</option>
+                <option>Utilitas</option><option>Peralatan</option><option>Promosi</option><option>Lainnya</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Deskripsi *</label>
+              <input type="text" id="pe-deskripsi" placeholder="cth: Elpiji 12kg" required />
+            </div>
+            <div class="form-group">
+              <label>Jumlah / Qty</label>
+              <input type="number" id="pe-jumlah" placeholder="cth: 2" min="1" value="1" />
+            </div>
+            <div class="form-group">
+              <label>Harga Satuan (Rp) *</label>
+              <input type="number" id="pe-nominal" placeholder="cth: 210000" min="0" required />
+            </div>
+            <div class="form-group">
+              <label>Total (Rp)</label>
+              <input type="text" id="pe-total" readonly placeholder="Otomatis terhitung" />
+            </div>
+          </div>
+          <div class="flex-end mt-2" style="display:flex;gap:10px;">
+            <button type="button" class="btn btn-outline" onclick="resetFormPe()">🔄 Reset</button>
+            <button type="submit" class="btn btn-primary" id="btn-simpan">💾 Simpan</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Panel Harian -->
+    <div id="panel-harian">
+      <div class="card">
+        <div class="card-header">
+          <h3>📅 Pengeluaran Harian</h3>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <input type="date" id="filter-harian-tgl" style="border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:12px;" />
+            <button class="btn btn-outline btn-sm" onclick="loadHarian()">🔍 Tampilkan</button>
+          </div>
+        </div>
+        <div class="card-body" style="padding-bottom:8px;">
+          <div style="display:flex;gap:12px;margin-bottom:12px;flex-wrap:wrap;">
+            <div class="stat-card" style="flex:1;min-width:140px;padding:12px 16px;">
+              <div class="stat-icon" style="font-size:22px;">📋</div>
+              <div class="stat-info"><div class="label">Item</div><div class="value" id="h-total-item" style="font-size:18px;">0</div></div>
+            </div>
+            <div class="stat-card" style="flex:1;min-width:160px;padding:12px 16px;">
+              <div class="stat-icon" style="font-size:22px;">💸</div>
+              <div class="stat-info"><div class="label">Total Pengeluaran</div><div class="value" id="h-total-nominal" style="font-size:18px;">Rp 0</div></div>
+            </div>
+          </div>
+          <div id="h-per-kategori" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;"></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>#</th><th>Kategori</th><th>Deskripsi</th><th>Qty</th><th>Harga Satuan</th><th>Total</th><th>Aksi</th></tr></thead>
+              <tbody id="tbl-harian"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Panel Mingguan -->
+    <div id="panel-mingguan" style="display:none;">
+      <div class="card">
+        <div class="card-header"><h3>📊 Pengeluaran 7 Hari Terakhir</h3></div>
+        <div class="card-body">
+          <div style="margin-bottom:16px;">
+            <div class="week-bars" id="week-bars-pe" style="height:100px;"></div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Tanggal</th><th>Item</th><th>Total Pengeluaran</th></tr></thead>
+              <tbody id="tbl-mingguan"></tbody>
+            </table>
+          </div>
+          <div style="margin-top:16px;">
+            <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:8px;text-transform:uppercase;">Breakdown per Kategori</div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Kategori</th><th>Total</th><th>% dari Total</th></tr></thead>
+                <tbody id="tbl-kategori-minggu"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Panel Semua -->
+    <div id="panel-semua" style="display:none;">
+      <div class="card">
+        <div class="card-header">
+          <h3>🗂️ Semua Pengeluaran</h3>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <select id="filter-semua-kategori" style="border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:12px;">
+              <option value="">-- Semua Kategori --</option>
+              <option>Bahan Baku</option><option>Operasional</option><option>Gaji</option>
+              <option>Utilitas</option><option>Peralatan</option><option>Promosi</option><option>Lainnya</option>
+            </select>
+            <button class="btn btn-outline btn-sm" onclick="loadSemua()">🔍 Filter</button>
+            <button class="btn btn-sm" style="background:#eee;color:var(--text);" onclick="resetFilterSemua()">✖ Reset</button>
+          </div>
+        </div>
+        <div class="card-body" style="padding:0;">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>#</th><th>Tanggal</th><th>Kategori</th><th>Deskripsi</th><th>Qty</th><th>Harga Satuan</th><th>Total</th><th>Aksi</th></tr></thead>
+              <tbody id="tbl-semua"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+let activeTab = 'harian';
+
+function setTab(tab) {
+  activeTab = tab;
+  ['harian','mingguan','semua'].forEach(t => {
+    el('tab-' + t).style.background = t === tab ? 'var(--primary)' : '#eee';
+    el('tab-' + t).style.color      = t === tab ? '#fff' : 'var(--text)';
+    el('panel-' + t).style.display  = t === tab ? 'block' : 'none';
+  });
+  if (tab === 'harian')   loadHarian();
+  if (tab === 'mingguan') loadMingguan();
+  if (tab === 'semua')    loadSemua();
+}
+
+// ── HARIAN ──────────────────────────────────
+async function loadHarian() {
+  const tgl = el('filter-harian-tgl').value || Fmt.today();
+  el('filter-harian-tgl').value = tgl;
+  setLoading('tbl-harian', 7);
+
+  const res = await API.get(`api/pengeluaran.php?tanggal=${tgl}`);
+  if (!res || !res.success) return;
+  const data = res.data;
+
+  el('h-total-item').textContent    = data.length;
+  el('h-total-nominal').textContent = Fmt.currency(data.reduce((s, p) => s + p.total, 0));
+
+  const katMap = {};
+  data.forEach(p => { katMap[p.kategori] = (katMap[p.kategori] || 0) + p.total; });
+  el('h-per-kategori').innerHTML = Object.entries(katMap)
+    .map(([k, v]) => `<span class="badge badge-orange" style="font-size:12px;padding:4px 10px;">${k}: ${Fmt.currency(v)}</span>`)
+    .join('');
+
+  el('tbl-harian').innerHTML = data.length === 0
+    ? `<tr><td colspan="7" class="text-center text-muted" style="padding:20px;">Tidak ada pengeluaran pada ${Fmt.dateShort(tgl)}</td></tr>`
+    : data.map((p, i) => `
+      <tr>
+        <td class="text-muted">${i + 1}</td>
+        <td><span class="badge badge-orange">${p.kategori}</span></td>
+        <td>${p.deskripsi}</td>
+        <td>${Fmt.number(p.jumlah)}</td>
+        <td>${Fmt.currency(p.nominal)}</td>
+        <td class="fw-bold text-danger">${Fmt.currency(p.total)}</td>
+        <td><button class="btn btn-danger btn-sm" onclick="hapusPe(${p.id})">🗑️ Hapus</button></td>
+      </tr>`).join('');
+}
+
+// ── MINGGUAN ─────────────────────────────────
+async function loadMingguan() {
+  const [resWeekly, resKat] = await Promise.all([
+    API.get('api/pengeluaran.php?mode=weekly'),
+    API.get('api/pengeluaran.php?mode=kategori_weekly'),
+  ]);
+  if (!resWeekly?.success) return;
+
+  // Buat map tanggal → data
+  const weekMap = {};
+  resWeekly.data.forEach(d => { weekMap[d.tanggal] = d; });
+
+  // Generate 7 hari
+  const weekDays = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const key   = d.toISOString().split('T')[0];
+    const label = d.toLocaleDateString('id-ID', { weekday: 'short' });
+    const total = weekMap[key] ? parseFloat(weekMap[key].total_pengeluaran) : 0;
+    const count = weekMap[key] ? parseInt(weekMap[key].item_count) : 0;
+    weekDays.push({ key, label, total, count });
+  }
+
+  const maxVal = Math.max(...weekDays.map(d => d.total), 1);
+  el('week-bars-pe').innerHTML = weekDays.map(d => {
+    const pct = Math.round((d.total / maxVal) * 100);
+    return `<div class="week-bar-col">
+      <div style="font-size:9px;color:var(--muted);">${d.total > 0 ? Fmt.currency(d.total).replace('Rp ','') : ''}</div>
+      <div class="week-bar" style="height:${Math.max(pct * 0.8, d.total > 0 ? 8 : 2)}px;background:var(--danger);"></div>
+      <div class="week-bar-label">${d.label}</div>
+    </div>`;
+  }).join('');
+
+  el('tbl-mingguan').innerHTML = weekDays.map(d => `
+    <tr>
+      <td>${Fmt.dateShort(d.key)}</td>
+      <td>${d.count} item</td>
+      <td class="fw-bold ${d.total > 0 ? 'text-danger' : 'text-muted'}">${Fmt.currency(d.total)}</td>
+    </tr>`).join('');
+
+  // Breakdown per kategori
+  if (resKat?.success) {
+    const totalMinggu = resKat.data.reduce((s, k) => s + parseFloat(k.total), 0);
+    el('tbl-kategori-minggu').innerHTML = resKat.data.length === 0
+      ? '<tr><td colspan="3" class="text-center text-muted">Belum ada data minggu ini</td></tr>'
+      : resKat.data.map(k => {
+          const pct = totalMinggu > 0 ? ((k.total / totalMinggu) * 100).toFixed(1) : 0;
+          return `<tr>
+            <td><span class="badge badge-orange">${k.kategori}</span></td>
+            <td class="fw-bold">${Fmt.currency(k.total)}</td>
+            <td>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <div style="flex:1;height:8px;background:#f0d9c8;border-radius:4px;overflow:hidden;">
+                  <div style="width:${pct}%;height:100%;background:var(--primary);"></div>
+                </div>
+                <span style="font-size:12px;color:var(--muted);">${pct}%</span>
+              </div>
+            </td>
+          </tr>`;
+        }).join('');
+  }
+}
+
+// ── SEMUA ────────────────────────────────────
+async function loadSemua() {
+  setLoading('tbl-semua', 8);
+  const kat  = el('filter-semua-kategori').value;
+  const url  = kat ? `api/pengeluaran.php?kategori=${encodeURIComponent(kat)}` : 'api/pengeluaran.php';
+  const res  = await API.get(url);
+  if (!res || !res.success) return;
+  const data = res.data;
+
+  el('tbl-semua').innerHTML = data.length === 0
+    ? '<tr><td colspan="8" class="text-center text-muted" style="padding:20px;">Belum ada data pengeluaran</td></tr>'
+    : data.map((p, i) => `
+      <tr>
+        <td class="text-muted">${i + 1}</td>
+        <td>${Fmt.dateShort(p.tanggal)}</td>
+        <td><span class="badge badge-orange">${p.kategori}</span></td>
+        <td>${p.deskripsi}</td>
+        <td>${Fmt.number(p.jumlah)}</td>
+        <td>${Fmt.currency(p.nominal)}</td>
+        <td class="fw-bold text-danger">${Fmt.currency(p.total)}</td>
+        <td><button class="btn btn-danger btn-sm" onclick="hapusPe(${p.id})">🗑️ Hapus</button></td>
+      </tr>`).join('');
+}
+
+function resetFilterSemua() { el('filter-semua-kategori').value = ''; loadSemua(); }
+
+async function hapusPe(id) {
+  if (!confirmDelete('Hapus pengeluaran ini?')) return;
+  const res = await API.delete(`api/pengeluaran.php?id=${id}`);
+  if (res && res.success) {
+    showAlert('alert-box', 'Pengeluaran berhasil dihapus.', 'success');
+    if (activeTab === 'harian')   loadHarian();
+    if (activeTab === 'mingguan') loadMingguan();
+    if (activeTab === 'semua')    loadSemua();
+  }
+}
+
+function resetFormPe() {
+  el('form-pe').reset();
+  el('pe-tanggal').value = Fmt.today();
+  el('pe-jumlah').value  = 1;
+  el('pe-total').value   = '';
+}
+
+['pe-jumlah','pe-nominal'].forEach(id => {
+  el(id).addEventListener('input', () => {
+    const qty = parseFloat(el('pe-jumlah').value)  || 1;
+    const nom = parseFloat(el('pe-nominal').value) || 0;
+    el('pe-total').value = (qty * nom).toLocaleString('id-ID');
+  });
+});
+
+el('form-pe').addEventListener('submit', async function (e) {
+  e.preventDefault();
+  const btn = el('btn-simpan');
+  btn.disabled = true; btn.textContent = '⏳ Menyimpan…';
+
+  const qty = parseFloat(el('pe-jumlah').value)  || 1;
+  const nom = parseFloat(el('pe-nominal').value) || 0;
+  const res = await API.post('api/pengeluaran.php', {
+    tanggal:   el('pe-tanggal').value,
+    kategori:  el('pe-kategori').value,
+    deskripsi: el('pe-deskripsi').value.trim(),
+    jumlah:    qty,
+    nominal:   nom,
+  });
+
+  btn.disabled = false; btn.textContent = '💾 Simpan';
+  if (res && res.success) {
+    showAlert('alert-box', `✅ Pengeluaran berhasil dicatat! Total: <strong>${Fmt.currency(qty*nom)}</strong>`, 'success');
+    resetFormPe();
+    if (activeTab === 'harian')   loadHarian();
+    if (activeTab === 'mingguan') loadMingguan();
+    if (activeTab === 'semua')    loadSemua();
+  } else {
+    showAlert('alert-box', '❌ Gagal menyimpan: ' + (res?.message || 'Error'), 'danger');
+  }
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  el('pe-tanggal').value        = Fmt.today();
+  el('filter-harian-tgl').value = Fmt.today();
+  setTab('harian');
+});
+</script>
+</body>
+</html>
